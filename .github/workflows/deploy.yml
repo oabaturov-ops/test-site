@@ -1,0 +1,22 @@
+name: Deploy to web-1
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Забрать код
+        uses: actions/checkout@v4
+      - name: Обновить сайт на сервере
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/test-site
+            git pull origin main
+            docker build -t test-site .
+            docker rm -f test-site
+            docker run -d --name test-site --network web --restart unless-stopped test-site
